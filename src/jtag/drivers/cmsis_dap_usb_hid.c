@@ -63,6 +63,8 @@ static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 		bool found = false;
 
 		if (vids[0] == 0) {
+			LOG_DEBUG("VID list not provided, checking for product string...");
+			LOG_DEBUG("product string: %ls", cur_dev->product_string);
 			if (!cur_dev->product_string) {
 				LOG_DEBUG("Cannot read product string of device 0x%x:0x%x",
 					  cur_dev->vendor_id, cur_dev->product_id);
@@ -70,6 +72,7 @@ static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 				/* if the user hasn't specified VID:PID *and*
 				 * product string contains "CMSIS-DAP", pick it
 				 */
+				LOG_DEBUG("Product string found, setting found to true.");
 				found = true;
 			}
 		} else {
@@ -81,13 +84,17 @@ static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 		}
 
 		/* LPC-LINK2 has cmsis-dap on interface 0 and other HID functions on other interfaces */
-		if (cur_dev->vendor_id == 0x1fc9 && cur_dev->product_id == 0x0090 && cur_dev->interface_number != 0)
+		if (cur_dev->vendor_id == 0x1fc9 && cur_dev->product_id == 0x0090 && cur_dev->interface_number != 0) {
+			LOG_DEBUG("Setting found to false for LPC-LINK2 condition.");
 			found = false;
+		}
 
 		if (found) {
 			/* check serial number matches if given */
-			if (!serial)
+			if (!serial) {
+				LOG_DEBUG("No serial provided, breaking with found device");
 				break;
+			}
 
 			if (cur_dev->serial_number) {
 				size_t len = (strlen(serial) + 1) * sizeof(wchar_t);
@@ -107,16 +114,17 @@ static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 		cur_dev = cur_dev->next;
 	}
 
+	LOG_DEBUG("cur_dev value: %p ", cur_dev);
 	if (cur_dev) {
 		target_vid = cur_dev->vendor_id;
 		target_pid = cur_dev->product_id;
 	}
 
-	LOG_DEBUG("Skipping check for target_vid and target_pid");
-	// if (target_vid == 0 && target_pid == 0) {
-	// 	hid_free_enumeration(devs);
-	// 	return ERROR_FAIL;
-	// }
+	LOG_DEBUG("Doing check for target_vid and target_pid");
+	if (target_vid == 0 && target_pid == 0) {
+		hid_free_enumeration(devs);
+		return ERROR_FAIL;
+	}
 
 	LOG_DEBUG("Allocating dap backend data");
 	dap->bdata = malloc(sizeof(struct cmsis_dap_backend_data));
