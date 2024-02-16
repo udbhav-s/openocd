@@ -112,17 +112,20 @@ static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 		target_pid = cur_dev->product_id;
 	}
 
-	if (target_vid == 0 && target_pid == 0) {
-		hid_free_enumeration(devs);
-		return ERROR_FAIL;
-	}
+	LOG_DEBUG("Skipping check for target_vid and target_pid");
+	// if (target_vid == 0 && target_pid == 0) {
+	// 	hid_free_enumeration(devs);
+	// 	return ERROR_FAIL;
+	// }
 
+	LOG_DEBUG("Allocating dap backend data");
 	dap->bdata = malloc(sizeof(struct cmsis_dap_backend_data));
 	if (!dap->bdata) {
 		LOG_ERROR("unable to allocate memory");
 		return ERROR_FAIL;
 	}
 
+	LOG_DEBUG("Opening path for device");
 	dev = hid_open_path(cur_dev->path);
 	hid_free_enumeration(devs);
 
@@ -148,6 +151,7 @@ static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 
 	dap->bdata->dev_handle = dev;
 
+	LOG_DEBUG("Calling cmsis_dap_hid_alloc");
 	int retval = cmsis_dap_hid_alloc(dap, packet_size);
 	if (retval != ERROR_OK) {
 		cmsis_dap_hid_close(dap);
