@@ -125,7 +125,7 @@ static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 		return ERROR_FAIL;
 	}
 
-	LOG_DEBUG("Opening path for device");
+	LOG_DEBUG("Opening path for device, v1");
 	dev = hid_open_path(cur_dev->path);
 	hid_free_enumeration(devs);
 
@@ -148,6 +148,8 @@ static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 	 * hardcoding a match by VID */
 	if (target_vid == 0x03eb && target_pid != 0x2145 && target_pid != 0x2175)
 		packet_size = 512;
+
+	LOG_DEBUG("Setting dev handle for dap");
 
 	dap->bdata->dev_handle = dev;
 
