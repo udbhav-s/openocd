@@ -59,6 +59,7 @@ static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 	 */
 	devs = hid_enumerate(0x0, 0x0);
 	cur_dev = devs;
+	LOG_DEBUG("cur_dev before looping: %p ", cur_dev);
 	while (cur_dev) {
 		bool found = false;
 
